@@ -3,8 +3,9 @@ import asyncio
 import socket
 import time
 import random
-from machine import Pin
+from machine import Pin, UART
 from neopixel import Neopixel
+from dfplayer import Player
 
 good = [
     "banan",
@@ -15,7 +16,7 @@ good = [
 
 bad = [
     "kylling",
-    "oksekod"
+    "oksekod",
 ]
 
 # wifi
@@ -29,50 +30,46 @@ led = machine.Pin('LED', machine.Pin.OUT)
 numpix = 24
 green = (0, 255, 0)
 red = (255, 0, 0)
-random_good = "hello!"
-random_bad = "fuck you"
-while_loop = True
 
-def gen_random(list, isGood):
-    global random_good, random_bad
-    while True:
-        random_var = random.choice(list)
-        
-        if isGood == True and random_var != random_good:
-            print("Good:", random_var, "-", random_good)
-            random_bad = random_var
-            return str(random_good)
-        elif isGood == False and random_var != random_bad:
-            print("Bad:", random_var, "-", random_bad)
-            random_bad = random_var
-            return str(random_bad)
+# dfplayer
+pico_uart0 = UART(0, baudrate=9600, tx=Pin(0), rx=Pin(1), bits=8, parity=None, stop=1)
+pico_busy = Pin(28)
+player = Player(uart=pico_uart0, busy_pin = pico_busy, volume=1.0)
+
+def led_color(color):
+    pixels = Neopixel(numpix, 0, 28, "GRB")
+    pixels.brightness(10)
+    pixels.fill(color)
+    pixels.show()
+
+def play_sound(sound1, sound2):
+    player.awaitconfig()
+    player.awaitvolume()
+    player.play(sound1, sound2)
 
 
 def gen_question():
-    good_choice = gen_random(good, True)
-    bad_choice = gen_random(bad, False)
-
     html1 = f"""
         <div>
-            <form action="./good">
-                <input type="submit" value="{good_choice}" />
+            <form action="./good" style="margin-right: 0.25rem;">
+                <input class="qustion_btn" type="submit" value="{random.choice(good)}" />
             </form>
         </div>
         <div>
             <form action="./bad">
-                <input type="submit" value="{bad_choice}" />
+                <input class="qustion_btn" type="submit" value="{random.choice(bad)}" />
             </form>
         </div>
     """
     html2 = f"""
         <div>
-            <form action="./bad">
-                <input type="submit" value="{bad_choice}" />
+            <form action="./bad" style="margin-right: 0.25rem;">
+                <input class="qustion_btn" type="submit" value="{random.choice(bad)}" />
             </form>
         </div>
         <div>
             <form action="./good">
-                <input type="submit" value="{good_choice}" />
+                <input class="qustion_btn" type="submit" value="{random.choice(good)}" />
             </form>
         </div>
     """
@@ -81,18 +78,41 @@ def gen_question():
 
 # HTML webpage
 def webpage():
+    style = """
+    <style>
+        .main_div {
+            flex-direction: row; 
+            display: flex;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            -webkit-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+        } 
+        .qustion_btn {
+            padding-left: 2rem; 
+            padding-right: 2rem; 
+            padding-bottom: 1rem; 
+            padding-top: 1rem;
+            background: white;
+            border-radius: 0.75rem;
+            border: 0rem;
+        }
+    </style>
+    """
+
     html = f"""
         <!DOCTYPE html>
         <html>
         <head>
             <title>Pico Web Server</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
+            {style}
         </head>
-        <body>
-            {gen_question()}
-            <form action="./good">
-                <input type="submit" value="good" />
-            </form>
+        <body style="--tw-bg-opacity: 1; background-color: rgba(245, 158, 11, var(--tw-bg-opacity));">
+            <div class="main_div">
+                {gen_question()}
+            <div>
         </body>
         </html>
         """
@@ -140,15 +160,11 @@ async def handle_client(reader, writer):
     
     # process request and update vars
     if request == '/good?':
-        pixels = Neopixel(numpix, 0, 28, "GRB")
-        pixels.brightness(10)
-        pixels.fill(green)
-        pixels.show()
+        led_color(green)
+        play_sound(1,1)
     elif request == '/bad?':
-        pixels = Neopixel(numpix, 0, 28, "GRB")
-        pixels.brightness(10)
-        pixels.fill(red)
-        pixels.show()
+        led_color(red)
+        play_sound(1,8)
     elif request == '/ledOn?':
         print('led on')
         led.value(1)

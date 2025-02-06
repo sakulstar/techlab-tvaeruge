@@ -54,7 +54,7 @@ else:
 
 ap = network.WLAN(network.AP_IF)
 ap.config(essid=ssid, password=password)
-ap.active(True)            #activating
+ap.active(True)
 
 while ap.active() == False:
   pass

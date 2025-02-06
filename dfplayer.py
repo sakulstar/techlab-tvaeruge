@@ -8,10 +8,11 @@ player = Player(uart=pico_uart0, busy_pin = pico_busy, volume=1.0)
 player.awaitconfig()
 player.awaitvolume()
 
-while True:
+'''while True:
     #print("Playing? {}".format(player.playing()))
     for i in range(5):
         player.play(1,i + 1)
         time.sleep(1)
-
+'''
+player.play(1,12)
     
