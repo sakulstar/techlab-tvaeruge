@@ -9,14 +9,24 @@ from dfplayer import Player
 
 good = [
     "banan",
-    "aeble",
-    "salat",
-    "insekter"
+    "æble",
+    "insekter",
+    "frugt",
+    "grøntsager",
+    "bønner",
+    "linser",
+    "fisk",
+    "økologisk mælk"
 ]
 
 bad = [
-    "kylling",
-    "oksekod",
+    "oksekød",
+    "lammekød",
+    "mælk",
+    "avocado",
+    "kiwi",
+    "mango",
+    "passionsfrugt",
 ]
 
 # wifi
@@ -34,7 +44,7 @@ red = (255, 0, 0)
 # dfplayer
 pico_uart0 = UART(0, baudrate=9600, tx=Pin(0), rx=Pin(1), bits=8, parity=None, stop=1)
 pico_busy = Pin(28)
-player = Player(uart=pico_uart0, busy_pin = pico_busy, volume=1.0)
+player = Player(uart=pico_uart0, busy_pin = pico_busy, volume=0.5)
 
 def led_color(color):
     pixels = Neopixel(numpix, 0, 28, "GRB")
@@ -106,7 +116,7 @@ def webpage():
         <html>
         <head>
             <title>Pico Web Server</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
             {style}
         </head>
         <body style="--tw-bg-opacity: 1; background-color: rgba(245, 158, 11, var(--tw-bg-opacity));">
@@ -161,10 +171,10 @@ async def handle_client(reader, writer):
     # process request and update vars
     if request == '/good?':
         led_color(green)
-        play_sound(1,1)
+        play_sound(1,8)
     elif request == '/bad?':
         led_color(red)
-        play_sound(1,8)
+        play_sound(1,1)
     elif request == '/ledOn?':
         print('led on')
         led.value(1)
